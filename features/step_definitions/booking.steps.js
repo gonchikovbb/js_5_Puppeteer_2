@@ -3,7 +3,12 @@ const chai = require("chai");
 const expect = chai.expect;
 const { Given, When, Then, Before, After } = require("@cucumber/cucumber");
 const { clickElement, getText } = require("../../lib/commands.js");
-// const { daysWeek } = require("../../lib/util.js");
+const { seatSelect } = require("../../lib/seatIndex.js");
+const { getDayDateSelector } = require("../../lib/dayIndex.js");
+
+let pm23_45 = "[data-seance-start='1425']";
+let ticketTitle = "p.ticket__hint";
+let confirmingText = "После оплаты билет будет доступен в этом окне, а также придёт вам на почту. Покажите QR-код нашему контроллёру у входа в зал.";
 
 Before({timeout: 30000}, async function () {
   const browser = await puppeteer.launch({ headless: false, slowMo: 50 });
@@ -24,79 +29,30 @@ Given("user is on {string} page", async function (string) {
   });
 });
 
-When("user chooses by {string}", {
-  timeout: 60 * 1000
-}, async function (string) {
-  await clickElement(this.page, string);
-
+When("user chooses {int}-th day and seance", async function (int1) {
+  await getDayDateSelector(
+    this.page,
+    `nav.page-nav > a:nth-child(${int1})`,
+    pm23_45
+  );
 });
 
-When("user chooses movie {string}", async function (string) {
-  return await clickElement(this.page, string);
+When("user chooses seat {int} in row {int}", async function (int1, int2) {
+  await seatSelect(this.page, int1, int2);
 });
 
-When("user chooses seat {string}", async function (string) {
-  return await clickElement(this.page, string);
-});
+When(
+  "user chooses {int} row and {int},{int} seats",
+  async function (int1, int2, int3) {
+    await seatSelect(this.page, int1, int2, int3);
+  }
+);
 
 When("user click {string}", async function (string) {
   return await clickElement(this.page, string);
 });
 
-Then("user sees text {string}", async function (string) {
-  const actual = await getText(this.page, ".ticket__check-title");
-  const expected = await string;
-  expect(actual).contains(expected);
+Then("user sees text", async function () {
+  const actual = await getText(this.page, ticketTitle);
+  expect(actual).contains(confirmingText);
 });
-
-Then("user sees the header {string}", async function (string) {
-  const actual = await getText(this.page, "h2");
-  const expected = await string;
-  expect(actual).contains(expected);
-});
-
-Then("user sees {string} is gray", {
-  timeout: 60 * 1000
-}, async function (string) {
-  
-  await clickElement(this.page, string);
-  await this.page.waitForNavigation(30000);
-  const isDisabled = await page.$eval("button", (button) => button.disabled);
-  await this.page.waitForNavigation(30000);
-
-  await expect(isDisabled).to.equal(true);
- 
-
-});
-
-
-
-// When("User booking one seat", async function () {
-//   return await clickElement(this.page, "[data-seance-start='1140']");
-
-  // await clickElement(page, "[data-seance-start='1140']");
-  // return await clickElement(this.page, ".buying-scheme__wrapper > div:nth-child(1) > span:nth-child(1)");
-  // return await clickElement(this.page, ".acceptin-button");
-// });
-
-// When("User booking one VIP seat", async function () {
-//   await clickElement(page, "[data-seance-start='1140']");
-//   await clickElement(page, ".buying-scheme__wrapper > div:nth-child(1) > span.buying-scheme__chair.buying-scheme__chair_vip");
-//   await clickElement(page, ".acceptin-button");
-// });
-
-// When("User don't booking one seat", async function () {
-//   await clickElement(page, "[data-seance-id='93']");
-//   // await clickElement(page, "div:nth-child(2) > span.buying-scheme__chair.buying-scheme__chair_standart.buying-scheme__chair_taken");
-
-// });
-
-// Then("user succsessfull booking", async function () {
-//   const actual = await getText(page, "h2.ticket__check-title");
-//   expect(actual).contain("Вы выбрали билеты:");
-// });
-
-// Then("user don't booking", async function () {
-//   const isDisabled = await page.$eval("button", (button) => button.disabled);
-//   expect(isDisabled).to.equal(true);
-// });
